@@ -1,10 +1,21 @@
 name: CI
 on: [push]
+env:
+  APP_NAME: fastapi-starter
 jobs:
   lint:
     name: Lint - Ruff
     runs-on: ubuntu-latest
     steps:
+      - name: Afficher les contextes GitHub Actions
+        run: |
+          echo "Application : ${{ env.APP_NAME }}"
+          echo "Acteur : ${{ github.actor }}"
+          echo "Événement : ${{ github.event_name }}"
+          echo "Branche : ${{ github.ref_name }}"
+          echo "SHA du commit : ${{ github.sha }}"
+          echo "OS du runner : ${{ runner.os }}"
+
       - name: Récupérer le code
         uses: actions/checkout@v3
 
