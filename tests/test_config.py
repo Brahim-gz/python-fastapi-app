@@ -7,7 +7,7 @@ from app.config import Settings, settings
 def test_settings_default_values():
     """Test that Settings class has correct default values."""
     test_settings = Settings()
-    assert test_settings.APP_NAME == "FastAPI Starter"
+    assert test_settings.APP_NAME == "fastapi-starter"
     assert test_settings.APP_ENV == "development"
     assert test_settings.DEBUG is False
     assert test_settings.HOST == "0.0.0.0"

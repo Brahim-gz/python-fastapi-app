@@ -1,5 +1,8 @@
 name: CI
-on: [push]
+on:
+  push:
+  pull_request:
+    branches: [main]
 env:
   APP_NAME: fastapi-starter
 jobs:
@@ -12,9 +15,16 @@ jobs:
           echo "Application : ${{ env.APP_NAME }}"
           echo "Acteur : ${{ github.actor }}"
           echo "Événement : ${{ github.event_name }}"
+          if [ -n "${{ github.head_ref }}" ]; then
+            echo "Branche source de la PR : ${{ github.head_ref }}"
+          fi
+          if [ -n "${{ github.base_ref }}" ]; then
+            echo "Branche cible de la PR : ${{ github.base_ref }}"
+          fi
           echo "Branche : ${{ github.ref_name }}"
           echo "SHA du commit : ${{ github.sha }}"
           echo "OS du runner : ${{ runner.os }}"
+          echo '${{ toJson(github) }}'
 
       - name: Récupérer le code
         uses: actions/checkout@v3
