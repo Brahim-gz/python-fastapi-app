@@ -32,10 +32,7 @@ jobs:
           python-version: 3.13
 
       - name: Installer les dépendances
-        run: pip install ruff fastapi
-
-      - name: Compiler le code
-        run: python -m compileall app
+        run: pip install -r requirements.txt
 
       - name: Importer l'application
         run: python -c "from app.main import app; print(app.title)"
@@ -53,8 +50,7 @@ jobs:
           python-version: 3.13
     
       - name: Installer les dépendances
-        run: pip install ruff pytest
+        run: pip install pytest pytest-cov
     
       - name: Lancer les tests
         run: pytest tests
-
