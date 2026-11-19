@@ -1,0 +1,87 @@
+name: Env, Inputs and Outputs Lab
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environnement cible"
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      version:
+        description: "Version à déployer"
+        required: false
+        type: string
+        default: "1.0.0"
+      debug:
+        description: "Afficher les informations de débogage"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      full_version: ${{ steps.version.outputs.full_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          echo "APP_NAME=my-app" >> "$GITHUB_ENV"
+          echo "BUILD_DATE=$(date +%F)" >> "$GITHUB_ENV"
+
+      - name: Print environment variables
+        run: echo "Application $APP_NAME built on $BUILD_DATE"
+
+      - name: Print deployment inputs
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          echo "environment=$TARGET_ENVIRONMENT"
+          echo "version=$REQUESTED_VERSION"
+
+      - name: Print debug information
+        if: ${{ inputs.debug }}
+        env:
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          echo "Debug environment=$TARGET_ENVIRONMENT"
+          echo "Debug version=$REQUESTED_VERSION"
+
+      - name: Compute full version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: echo "full_version=$REQUESTED_VERSION-$(date +%F)" >> "$GITHUB_OUTPUT"
+
+  verify-env:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify job environment
+        run: |
+          echo "APP_NAME=$APP_NAME"
+          echo "APP_NAME is not shared between jobs by GITHUB_ENV"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy application
+        env:
+          FULL_VERSION: ${{ needs.build.outputs.full_version }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+        run: echo "Deploying version $FULL_VERSION to $TARGET_ENVIRONMENT"
+
+  call-greeting:
+    uses: ./.github/workflows/greeting.yml
+    with:
+      recipient: ${{ inputs.environment }}
