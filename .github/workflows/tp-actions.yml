@@ -1,0 +1,87 @@
+name: Third-Party and Custom Actions Lab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start composite action timing
+        run: echo "COMPOSITE_START_MS=$(date +%s%3N)" >> "$GITHUB_ENV"
+
+      - name: Run build info action
+        id: info
+        uses: ./.github/actions/build-info
+        with:
+          app-name: my-app
+
+      - name: Finish composite action timing
+        run: |
+          end_ms=$(date +%s%3N)
+          duration_ms=$((end_ms - COMPOSITE_START_MS))
+          echo "Composite action duration: ${duration_ms} ms"
+          echo "| Composite action | ${duration_ms} ms |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Print build ID
+        env:
+          BUILD_ID: ${{ steps.info.outputs.build-id }}
+        run: echo "Build id is $BUILD_ID"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Print Node.js version
+        run: node --version
+
+      - name: Generate build report
+        run: |
+          printf 'Node.js version: %s | Build date: %s\n' \
+            "$(node --version)" \
+            "$(date +%F)" > report.txt
+
+      - name: Upload build report
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-report
+          path: report.txt
+          if-no-files-found: error
+
+  verify:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build report
+        uses: actions/download-artifact@v4
+        with:
+          name: build-report
+          path: downloaded-report
+
+      - name: Print build report
+        run: cat downloaded-report/report.txt
+
+  docker-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start Docker action timing
+        run: echo "DOCKER_START_MS=$(date +%s%3N)" >> "$GITHUB_ENV"
+
+      - name: Run Docker hello action
+        uses: ./.github/actions/docker-hello
+        with:
+          who: "TP 7"
+
+      - name: Finish Docker action timing
+        run: |
+          end_ms=$(date +%s%3N)
+          duration_ms=$((end_ms - DOCKER_START_MS))
+          echo "Docker action duration: ${duration_ms} ms"
+          echo "| Docker action | ${duration_ms} ms |" >> "$GITHUB_STEP_SUMMARY"

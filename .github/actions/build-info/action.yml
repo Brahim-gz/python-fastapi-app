@@ -1,0 +1,34 @@
+name: Build Info
+description: Print build details and return a build id
+
+inputs:
+  app-name:
+    description: Application name
+    required: true
+  version:
+    description: Application version
+    required: false
+    default: "1.0.0"
+
+outputs:
+  build-id:
+    description: Combined application name and version
+    value: ${{ steps.make-id.outputs.build-id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Print build details
+      shell: bash
+      env:
+        APP_NAME: ${{ inputs.app-name }}
+        VERSION: ${{ inputs.version }}
+      run: echo "Building $APP_NAME v$VERSION"
+
+    - name: Generate build id
+      id: make-id
+      shell: bash
+      env:
+        APP_NAME: ${{ inputs.app-name }}
+        VERSION: ${{ inputs.version }}
+      run: echo "build-id=${APP_NAME}-${VERSION}" >> "$GITHUB_OUTPUT"
